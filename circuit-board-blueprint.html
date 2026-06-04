@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICS Create Studio — Service Blueprint</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #FFFFFF;
+            --border: #D1D5DB;
+            --text: #1F2937;
+            --text-dim: #6B7280;
+            --blue: #2563EB;
+            --blue-light: #EFF6FF;
+            --orange: #EA580C;
+            --orange-light: #FFF7ED;
+            --green: #059669;
+            --green-light: #ECFDF5;
+            --purple: #7C3AED;
+            --purple-light: #F5F3FF;
+            --red: #DC2626;
+            --red-light: #FEF2F2;
+            --shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        body {
+            background: #F3F4F6;
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow: hidden;
+            height: 100vh; width: 100vw;
+        }
+
+        /* TOOLBAR */
+        .toolbar {
+            position: fixed; top: 0; left: 0; right: 0; height: 48px;
+            background: #fff; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 16px; gap: 12px;
+            z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .toolbar h1 { font-size: 14px; font-weight: 700; margin-right: auto; }
+        .toolbar .zc { display: flex; align-items: center; gap: 6px; background: #F3F4F6; padding: 4px 8px; border-radius: 6px; }
+        .toolbar button { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 12px; cursor: pointer; font-weight: 500; }
+        .toolbar button:hover { background: #F9FAFB; }
+        .toolbar button.pr { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .toolbar .zl { font-size: 11px; color: var(--text-dim); min-width: 40px; text-align: center; }
+        .toolbar .sep { width: 1px; height: 24px; background: var(--border); }
+
+        /* VIEWPORT */
+        .viewport { position: fixed; top: 48px; left: 0; right: 0; bottom: 0; overflow: hidden; cursor: grab; }
+        .viewport:active { cursor: grabbing; }
+        .canvas { position: absolute; transform-origin: 0 0; width: 4600px; height: 2200px; padding: 40px; }
+
+        /* BOARD */
+        .board { position: relative; width: 4500px; height: 2100px; background: #fff; border: 2px solid var(--border); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+
+        /* Lane bgs */
+        .lbg { position: absolute; left: 110px; right: 0; }
+        .lbg.hdr { top: 0; height: 50px; background: #F9FAFB; border-bottom: 2px solid var(--border); }
+        .lbg.front { top: 50px; height: 520px; background: #f8fbff; border-bottom: 2px solid var(--border); }
+        .lbg.back { top: 570px; height: 580px; background: #fffbf7; border-bottom: 2px solid var(--border); }
+        .lbg.infra { top: 1150px; height: 950px; background: #f7fdf9; }
+
+        /* Lane labels */
+        .ll { position: absolute; left: 0; width: 110px; display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; border-right: 2px solid var(--border); }
+        .ll.front { top: 50px; height: 520px; color: var(--blue); background: var(--blue-light); }
+        .ll.back { top: 570px; height: 580px; color: var(--orange); background: var(--orange-light); }
+        .ll.infra { top: 1150px; height: 950px; color: var(--green); background: var(--green-light); }
+
+        /* Col headers */
+        .ch { position: absolute; top: 0; left: 110px; right: 0; height: 50px; display: flex; }
+        .ch div { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); border-right: 1px dashed #E5E7EB; }
+        .ch .n { background: var(--blue); color: #fff; width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; margin-right: 8px; }
+
+        /* NODES */
+        .nd { position: absolute; background: #fff; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; box-shadow: var(--shadow); font-size: 9px; width: 270px; }
+        .nd .nt { font-weight: 700; font-size: 10px; margin-bottom: 4px; }
+        .nd .nc { color: var(--text-dim); line-height: 1.4; }
+        .nd .cd { font-family: monospace; font-size: 8px; background: #F3F4F6; padding: 2px 5px; border-radius: 3px; display: inline-block; margin-top: 3px; }
+
+        .nd.ui { border-left: 4px solid var(--blue); }
+        .nd.ui .nt { color: var(--blue); }
+        .nd.api { border-left: 4px solid var(--orange); }
+        .nd.api .nt { color: var(--orange); }
+        .nd.svc { border-left: 4px solid var(--green); border-width: 2px; }
+        .nd.svc .nt { color: var(--green); }
+        .nd.shared { border: 2.5px solid var(--purple); background: var(--purple-light); }
+        .nd.shared .nt { color: var(--purple); }
+        .nd.pain { border: 2.5px solid var(--red); background: var(--red-light); border-radius: 10px; box-shadow: 0 0 0 3px rgba(220,38,38,0.15); }
+        .nd.pain .nt { color: var(--red); font-size: 10px; font-weight: 800; }
+
+        /* START / FINISH markers */
+        .journey-marker { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 15; }
+        .journey-marker .dot { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .journey-marker .dot.start { background: linear-gradient(135deg, #059669, #10B981); border: 3px solid #fff; }
+        .journey-marker .dot.finish { background: linear-gradient(135deg, #2563EB, #7C3AED); border: 3px solid #fff; }
+        .journey-marker .label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; padding: 3px 10px; border-radius: 4px; white-space: nowrap; }
+        .journey-marker .label.start { background: #ECFDF5; color: #059669; }
+        .journey-marker .label.finish { background: #EFF6FF; color: #2563EB; }
+
+        /* SVG */
+        .arrows { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+
+        /* LEGEND */
+        .legend { position: absolute; top: 60px; right: 30px; width: 330px; background: #fff; border: 1.5px solid var(--border); border-radius: 10px; padding: 14px 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 20; font-size: 9px; }
+        .legend h3 { font-size: 11px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .legend .sec { font-weight: 600; font-size: 8px; color: var(--text-dim); text-transform: uppercase; margin: 8px 0 4px; letter-spacing: 0.5px; }
+        .legend .row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+
+        /* PAIN PANEL */
+        .pain-panel { position: fixed; top: 48px; right: 0; width: 520px; height: calc(100vh - 48px); background: #fff; border-left: 2px solid var(--border); box-shadow: -4px 0 20px rgba(0,0,0,0.1); z-index: 900; overflow-y: auto; padding: 24px; transform: translateX(100%); transition: transform 0.3s ease; }
+        .pain-panel.open { transform: translateX(0); }
+        .pain-panel h2 { font-size: 16px; font-weight: 800; margin-bottom: 4px; color: var(--red); }
+        .pain-panel .sub { font-size: 11px; color: var(--text-dim); margin-bottom: 16px; }
+        .pain-panel table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .pain-panel th { background: #1F2937; color: #fff; padding: 8px 10px; text-align: left; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .pain-panel td { padding: 7px 10px; border-bottom: 1px solid #F3F4F6; vertical-align: top; }
+        .pain-panel tr:hover { background: #F9FAFB; }
+        .pain-panel tr.crit { background: #FEF2F2; }
+        .pain-panel tr.crit:hover { background: #FEE2E2; }
+        .sev { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 9px; font-weight: 700; color: #fff; }
+        .sev.s1 { background: #DC2626; }
+        .sev.s2 { background: #EA580C; }
+        .sev.s3 { background: #D97706; }
+        .sev.s4 { background: #CA8A04; }
+        .sev.s5 { background: #65A30D; }
+        .rk { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: var(--red); color: #fff; border-radius: 50%; font-size: 10px; font-weight: 800; }
+        .toolbar button.pain-btn { background: var(--red); color: #fff; border-color: var(--red); }
+        .toolbar button.pain-btn:hover { background: #B91C1C; }
+
+        @media print {
+            .toolbar { display: none !important; }
+            .pain-panel { display: none !important; }
+            body { overflow: visible; height: auto; width: auto; background: #fff; }
+            .viewport { position: static; overflow: visible; }
+            .canvas { position: static; transform: none !important; width: auto; height: auto; padding: 0; }
+            .board { width: 100%; height: auto; }
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <h1>ICS Create Studio — Service Blueprint</h1>
+    <div class="sep"></div>
+    <div class="zc">
+        <button onclick="zOut()">−</button>
+        <span class="zl" id="zl">100%</span>
+        <button onclick="zIn()">+</button>
+        <button onclick="zFit()">Fit</button>
+    </div>
+    <div class="sep"></div>
+    <button class="pain-btn" onclick="togglePain()">★ 15 Pain Points</button>
+    <div class="sep"></div>
+    <button onclick="window.print()">🖨️ Print</button>
+    <button class="pr" onclick="zFit()">Fit to Screen</button>
+</div>
+
+<div class="viewport" id="vp">
+<div class="canvas" id="cv">
+<div class="board" id="bd">
+
+    <!-- Lane backgrounds -->
+    <div class="lbg hdr"></div>
+    <div class="lbg front"></div>
+    <div class="lbg back"></div>
+    <div class="lbg infra"></div>
+
+    <!-- Lane labels -->
+    <div class="ll front">Frontstage · UI Screens</div>
+    <div class="ll back">Backstage · API Routes (BFFE)</div>
+    <div class="ll infra">Infrastructure · Services (SINGLE instances, shared)</div>
+
+    <!-- Column headers -->
+    <div class="ch">
+        <div><span class="n">1</span> Login</div>
+        <div><span class="n">2</span> Dashboard</div>
+        <div><span class="n">3</span> Configure</div>
+        <div><span class="n">4</span> Generate</div>
+        <div><span class="n">5</span> Refine</div>
+        <div><span class="n">6</span> Manage</div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend">
+        <h3>Legend</h3>
+        <div class="sec">Arrow Types</div>
+        <div class="row"><svg width="50" height="12"><line x1="0" y1="6" x2="42" y2="6" stroke="#2563EB" stroke-width="3"/><polygon points="42,2 50,6 42,10" fill="#2563EB"/></svg><span style="color:#2563EB;"><strong>User journey</strong> (stage → next)</span></div>
+        <div class="row"><svg width="50" height="12"><line x1="0" y1="6" x2="42" y2="6" stroke="#9CA3AF" stroke-width="1.5"/><polygon points="42,2 50,6 42,10" fill="#9CA3AF"/></svg><span>Request (UI→API or API→Service)</span></div>
+        <div class="row"><svg width="50" height="12"><line x1="0" y1="6" x2="42" y2="6" stroke="#7C3AED" stroke-width="2" stroke-dasharray="5,3"/><polygon points="42,2 50,6 42,10" fill="#7C3AED"/></svg><span style="color:#7C3AED;"><strong>Shared dependency</strong> (many → one)</span></div>
+        <div class="sec">Swim Lanes</div>
+        <div class="row"><div style="width:28px;height:14px;background:#EFF6FF;border:1.5px solid #93C5FD;border-radius:3px;"></div><strong style="color:#2563EB;">Frontstage</strong> — User's screen</div>
+        <div class="row"><div style="width:28px;height:14px;background:#FFF7ED;border:1.5px solid #FDBA74;border-radius:3px;"></div><strong style="color:#EA580C;">Backstage</strong> — BFFE API routes</div>
+        <div class="row"><div style="width:28px;height:14px;background:#ECFDF5;border:1.5px solid #6EE7B7;border-radius:3px;"></div><strong style="color:#059669;">Infrastructure</strong> — Single shared services</div>
+        <div class="sec">Node Types</div>
+        <div class="row"><div style="width:28px;height:14px;background:#fff;border:1.5px solid #D1D5DB;border-left:4px solid #2563EB;border-radius:3px;"></div>UI Screen</div>
+        <div class="row"><div style="width:28px;height:14px;background:#fff;border:1.5px solid #D1D5DB;border-left:4px solid #EA580C;border-radius:3px;"></div>API Route</div>
+        <div class="row"><div style="width:28px;height:14px;background:#F5F3FF;border:2.5px solid #7C3AED;border-radius:3px;"></div><strong style="color:#7C3AED;">Shared Service</strong> (one instance, many callers)</div>
+        <div class="row"><div style="width:28px;height:14px;background:#FEF2F2;border:1.5px solid #FECACA;border-left:4px solid #DC2626;border-radius:3px;"></div><span style="color:#DC2626;">Pain Point</span></div>
+    </div>
+
+    <!-- START / FINISH JOURNEY MARKERS -->
+    <div class="journey-marker" style="left:125px; top:108px;">
+        <div class="dot start">▶</div>
+        <div class="label start">User Starts Here</div>
+    </div>
+    <div class="journey-marker" style="left:4120px; top:108px;">
+        <div class="dot finish">🏁</div>
+        <div class="label finish">Journey Complete</div>
+    </div>
+
+    <!-- ================================================================
+         FRONTSTAGE NODES (y: 70-520, within 520px lane)
+         Col centers: 1=330, 2=1060, 3=1790, 4=2520, 5=3250, 6=3980
+         Each col is ~730px wide. Nodes at left+20 within col.
+         ================================================================ -->
+    <!-- Stage 1 -->
+    <div class="nd ui" style="left:170px; top:100px;">
+        <div class="nt">Google SSO (GCP IAP)</div>
+        <div class="nc">Browser → create-studio.ics.pg.com<br/>IAP intercepts, redirects to Google SSO<br/>No custom login form</div>
+    </div>
+
+    <!-- Stage 2 -->
+    <div class="nd ui" style="left:900px; top:80px;">
+        <div class="nt">Home Dashboard</div>
+        <div class="nc">"Hello {pgId}" • "Let's Get Creative"<br/>6 module cards (3×2 grid)<br/>Daily Inspiration carousel</div>
+    </div>
+    <div class="nd ui" style="left:900px; top:280px;">
+        <div class="nt">Your Studio</div>
+        <div class="nc">Recent projects grid/table<br/>Search + tabs + filter + pagination</div>
+    </div>
+
+    <!-- Stage 3 -->
+    <div class="nd ui" style="left:1630px; top:70px;">
+        <div class="nt">Sidebar "Command Panel"</div>
+        <div class="nc">• Product* (dropdown)<br/>• Creative Director* (dropdown)<br/>• Platform, Toolkit, References [+]<br/>• Brand Guidelines, Output Settings</div>
+    </div>
+    <div class="nd ui" style="left:1630px; top:310px;">
+        <div class="nt">Right Panel: Empty / Prompts</div>
+        <div class="nc">Module icon + prompt suggestions<br/>"Chat History" + "Accelerator" buttons</div>
+    </div>
+
+    <!-- Stage 4 -->
+    <div class="nd ui" style="left:2360px; top:80px;">
+        <div class="nt">Chat + Image Generation</div>
+        <div class="nc">User types prompt → sends<br/>AI returns 4 images (2×2 grid)<br/>Actions: 👍 👎 🔄 👁 📥 ✏️</div>
+    </div>
+    <div class="nd pain" style="left:1630px; top:430px; width:260px;">
+        <div class="nt">⚠️ PAIN #1: Cold Start Delay</div>
+        <div class="nc">Guidelines Studio: 8-12s cold start<br/>User sees blank sidebar while waiting</div>
+    </div>
+    <div class="nd pain" style="left:2360px; top:340px; width:260px;">
+        <div class="nt">⚠️ PAIN #2: Black-Box Generation</div>
+        <div class="nc">15-45 seconds with NO progress indicator<br/>User doesn't know if it's working or stuck</div>
+    </div>
+    <div class="nd pain" style="left:3090px; top:430px; width:260px;">
+        <div class="nt">⚠️ PAIN #3: Wasteful Polling</div>
+        <div class="nc">Video: polls every 5s (GET /status)<br/>No WebSocket/SSE — burns requests</div>
+    </div>
+    <div class="nd pain" style="left:3820px; top:420px; width:260px;">
+        <div class="nt">⚠️ PAIN #4: Expired URLs</div>
+        <div class="nc">GCS signed URLs expire after 30 min<br/>User returns to library → broken images</div>
+    </div>
+    <div class="nd pain" style="left:2360px; top:1050px; width:260px;">
+        <div class="nt">⚠️ PAIN #5: Double Base64 Encoding</div>
+        <div class="nc">Client encodes → BFFE decodes → re-encodes<br/>~33% payload bloat on every request</div>
+    </div>
+
+    <!-- Stage 5 -->
+    <div class="nd ui" style="left:3090px; top:80px;">
+        <div class="nt">Iterative Refinement</div>
+        <div class="nc">Click img → @Img 2 reference<br/>"Make warmer, add bokeh"<br/>Conversation grows, re-generates</div>
+    </div>
+    <div class="nd ui" style="left:3090px; top:290px;">
+        <div class="nt">Video: Async Polling</div>
+        <div class="nc">"Generating video..." spinner<br/>Frontend polls every 5s<br/>On SUCCESS → video player</div>
+    </div>
+
+    <!-- Stage 6 -->
+    <div class="nd ui" style="left:3820px; top:80px;">
+        <div class="nt">Library / Your Studio</div>
+        <div class="nc">All creations gallery<br/>Search + filter + pagination<br/>Click → restore full session</div>
+    </div>
+    <div class="nd ui" style="left:3820px; top:280px;">
+        <div class="nt">DAM Browser Modal</div>
+        <div class="nc">[+] → Browse DAM<br/>Folder tree + thumbnails<br/>Select → attach as reference</div>
+    </div>
+
+    <!-- ================================================================
+         BACKSTAGE NODES (y: 600-1100)
+         ================================================================ -->
+    <!-- Stage 1 -->
+    <div class="nd api" style="left:170px; top:620px;">
+        <div class="nt">Middleware + GET /api/user</div>
+        <div class="nc">Adds x-request-id, x-trace-id<br/>Reads X-Goog-Auth-User-Email header<br/>Queries PostgreSQL for user OUs</div>
+        <div class="cd">→ { userId, pgId, ous[] }</div>
+    </div>
+
+    <!-- Stage 2 -->
+    <div class="nd api" style="left:900px; top:600px;">
+        <div class="nt">POST /api/brand-store</div>
+        <div class="nc">Proxy → Brand Store API (external)<br/>Auth: BRAND_STORE_API_KEY (static)</div>
+        <div class="cd">→ { theme, bg-image, accent }</div>
+    </div>
+    <div class="nd api" style="left:900px; top:810px;">
+        <div class="nt">GET /api/creations</div>
+        <div class="nc">?ou_id&region_id&page&limit<br/>Queries PostgreSQL (server-side pagination)</div>
+        <div class="cd">→ { data[], total }</div>
+    </div>
+
+    <!-- Stage 3 -->
+    <div class="nd api" style="left:1630px; top:590px;">
+        <div class="nt">GET /api/products</div>
+        <div class="nc">→ Products API (Cloud Run)<br/>Auth: GCP ID Token</div>
+    </div>
+    <div class="nd api" style="left:1630px; top:720px;">
+        <div class="nt">GET /api/creative-director</div>
+        <div class="nc">→ Direct PostgreSQL read</div>
+    </div>
+    <div class="nd api" style="left:1630px; top:840px;">
+        <div class="nt">GET /api/toolkits</div>
+        <div class="nc">→ Toolkits API (Cloud Run)<br/>Auth: GCP ID Token</div>
+    </div>
+    <div class="nd api" style="left:1630px; top:970px;">
+        <div class="nt">GET /api/guidelines</div>
+        <div class="nc">→ Guidelines Studio (Cloud Run)<br/>Auth: Cloud Run ID Token</div>
+    </div>
+
+    <!-- Stage 4 -->
+    <div class="nd api" style="left:2360px; top:600px;">
+        <div class="nt">POST /api/praas/images</div>
+        <div class="nc">1. Decode base64 → JSON<br/>2. Azure AD token<br/>3. POST → PraaS API<br/>4. Upload imgs → GCS<br/>5. Save → PostgreSQL</div>
+        <div class="cd">Auth: Azure AD + Ocp-Apim-Sub-Key</div>
+    </div>
+
+    <!-- Stage 5 -->
+    <div class="nd api" style="left:3090px; top:600px;">
+        <div class="nt">POST /api/praas/images (optim)</div>
+        <div class="nc">Mode: ics-image-optimization-v2<br/>Payload: history[] + reference (base64)</div>
+    </div>
+    <div class="nd api" style="left:3090px; top:790px;">
+        <div class="nt">POST /api/video/generate</div>
+        <div class="nc">Returns job_id immediately (async)</div>
+    </div>
+    <div class="nd api" style="left:3090px; top:930px;">
+        <div class="nt">GET /api/video/status</div>
+        <div class="nc">Polls PraaS job status<br/>On SUCCESS: upload GCS, save DB</div>
+    </div>
+
+    <!-- Stage 6 -->
+    <div class="nd api" style="left:3820px; top:600px;">
+        <div class="nt">GET /api/creations</div>
+        <div class="nc">Same endpoint as Dashboard<br/>Filter: module_type, search, liked</div>
+    </div>
+    <div class="nd api" style="left:3820px; top:780px;">
+        <div class="nt">GET /api/conversations/list</div>
+        <div class="nc">Session history per module</div>
+    </div>
+    <div class="nd api" style="left:3820px; top:920px;">
+        <div class="nt">POST /api/dam/edge</div>
+        <div class="nc">GraphQL → Sitecore Edge<br/>Auth: DAM_EDGE_API_KEY</div>
+    </div>
+
+    <!-- ================================================================
+         INFRASTRUCTURE — SINGLE SHARED INSTANCES
+         These are THE SAME service. Multiple arrows converge here.
+         Positioned horizontally across the bottom lane.
+         y: 1200-2050
+         ================================================================ -->
+    <!-- SHARED: PostgreSQL (THE single database) — centered, large -->
+    <div class="nd shared" style="left:1700px; top:1200px; width:400px;">
+        <div class="nt">🗄️ PostgreSQL (Single Instance)</div>
+        <div class="nc">Schema: ics_create_express (Prisma ORM)<br/>Tables: organizational_units, creative_directors, creations,<br/>conversations, chat_messages, image_items, video_items, daily_inspirations<br/><br/><strong>Called by:</strong> Stage 1 (user/OUs), Stage 2 (creations, inspirations),<br/>Stage 3 (creative directors), Stage 4 (save conversations),<br/>Stage 5 (append messages), Stage 6 (query library)</div>
+    </div>
+
+    <!-- SHARED: PraaS API (THE single AI service) -->
+    <div class="nd shared" style="left:2500px; top:1480px; width:380px;">
+        <div class="nt">🤖 PraaS API (Single Instance — Azure APIM)</div>
+        <div class="nc">Endpoint: praas.azure-api.net/prompt-service<br/>Auth: Azure AD (ClientSecretCredential) + Ocp-Apim-Subscription-Key<br/>Body: Content-Type text/plain (base64-encoded JSON)<br/><br/>Prompts used:<br/>• ics-image-generation-v2 (Stage 4)<br/>• ics-image-optimization-v2 (Stage 5)<br/>• ics-video-generation (Stage 5 video)<br/>• ics-concept-generation, ics-brief, ics-script (other modules)<br/><br/><strong>Called by:</strong> Stage 4 (generate) + Stage 5 (refine/video)</div>
+    </div>
+
+    <!-- SHARED: Google Cloud Storage (THE single bucket) -->
+    <div class="nd shared" style="left:800px; top:1500px; width:350px;">
+        <div class="nt">☁️ Google Cloud Storage (Single Bucket)</div>
+        <div class="nc">Bucket: ics-create-{env}<br/>Stores: generated images, generated videos<br/>Access: Signed URLs (⚠️ expire in 30 minutes)<br/><br/><strong>Called by:</strong> Stage 4 (upload new images),<br/>Stage 5 (upload refined images/videos),<br/>Stage 6 (serve thumbnails in library)</div>
+    </div>
+
+    <!-- SHARED: GCP IAP -->
+    <div class="nd shared" style="left:150px; top:1200px; width:300px;">
+        <div class="nt">🔒 GCP Identity-Aware Proxy</div>
+        <div class="nc">Intercepts ALL traffic to app<br/>Sets: X-Goog-Authenticated-User-Email<br/>Format: accounts.google.com:user@pg.com<br/><br/><strong>Called by:</strong> Every single request (always active)</div>
+    </div>
+
+    <!-- Single-stage services (not shared, but still single instances) -->
+    <div class="nd svc" style="left:150px; top:1740px; width:280px;">
+        <div class="nt">Brand Store API (External)</div>
+        <div class="nc">Brand theming: bg-image, colors<br/>Auth: static API key<br/><strong>Called by:</strong> Stage 2 only</div>
+    </div>
+
+    <div class="nd svc" style="left:600px; top:1820px; width:280px;">
+        <div class="nt">Products API (Cloud Run)</div>
+        <div class="nc">ics-products-{env}.us-east4.run.app<br/>Returns: product names, SKUs<br/>Auth: GCP ID Token<br/><strong>Called by:</strong> Stage 3 only</div>
+    </div>
+
+    <div class="nd svc" style="left:1050px; top:1820px; width:280px;">
+        <div class="nt">Toolkits API (Cloud Run)</div>
+        <div class="nc">Templates + reference_assets[]<br/>Auth: GCP ID Token<br/><strong>Called by:</strong> Stage 3 only</div>
+    </div>
+
+    <div class="nd svc" style="left:1500px; top:1820px; width:280px;">
+        <div class="nt">Guidelines Studio (Cloud Run)</div>
+        <div class="nc">ics-guidelines-{env}.us-east4.run.app<br/>Returns brand/platform rules<br/>⚠️ Cold start: 8-12 seconds<br/><strong>Called by:</strong> Stage 3 only</div>
+    </div>
+
+    <div class="nd svc" style="left:3600px; top:1500px; width:300px;">
+        <div class="nt">Sitecore DAM Edge (GraphQL)</div>
+        <div class="nc">edge.sitecorecloud.io<br/>Brand asset library<br/>Auth: DAM_EDGE_API_KEY<br/><strong>Called by:</strong> Stage 6 only</div>
+    </div>
+
+    <!-- ================================================================
+         SVG ARROWS — CROSS-LANE, DIAGONAL, SHARED
+         All arrows connect to actual node edges.
+         ================================================================ -->
+    <svg class="arrows" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <marker id="ad" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#6B7280"/></marker>
+            <marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2563EB"/></marker>
+            <marker id="ap" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#7C3AED"/></marker>
+        </defs>
+
+        <!--
+            NODE POSITION REFERENCE (calculated from CSS):
+            ═══════════════════════════════════════════════
+            All nodes: padding 10px 12px, .nt ~16px, .nc lines ~13px each, .cd ~16px
+            Width = as specified in style. Height = 20 + 16 + (lines × 13) [+ 16 if .cd]
+
+            FRONTSTAGE (top→bottom of each node):
+            ─────────────────────────────────────
+            S1 Google SSO:        left:170  top:100  w:270  h:~80  → bottom:180  center-x:305
+            S2 Home Dashboard:    left:900  top:80   w:270  h:~80  → bottom:160  center-x:1035
+            S2 Your Studio:       left:900  top:280  w:270  h:~64  → bottom:344  center-x:1035
+            S3 Sidebar:           left:1630 top:70   w:270  h:~92  → bottom:162  center-x:1765
+            S3 Right Panel:       left:1630 top:310  w:270  h:~80  → bottom:390  center-x:1765
+            S4 Chat+Image:        left:2360 top:80   w:270  h:~80  → bottom:160  center-x:2495
+            S5 Refinement:        left:3090 top:80   w:270  h:~80  → bottom:160  center-x:3225
+            S5 Video Polling:     left:3090 top:290  w:270  h:~80  → bottom:370  center-x:3225
+            S6 Library:           left:3820 top:80   w:270  h:~80  → bottom:160  center-x:3955
+            S6 DAM Browser:       left:3820 top:280  w:270  h:~80  → bottom:360  center-x:3955
+
+            BACKSTAGE (top→bottom of each node):
+            ─────────────────────────────────────
+            S1 Middleware:        left:170  top:620  w:270  h:~96  → bottom:716  center-x:305
+            S2 brand-store:       left:900  top:600  w:270  h:~82  → bottom:682  center-x:1035
+            S2 creations:         left:900  top:810  w:270  h:~82  → bottom:892  center-x:1035
+            S3 products:          left:1630 top:590  w:270  h:~64  → bottom:654  center-x:1765
+            S3 creative-dir:      left:1630 top:720  w:270  h:~51  → bottom:771  center-x:1765
+            S3 toolkits:          left:1630 top:840  w:270  h:~64  → bottom:904  center-x:1765
+            S3 guidelines:        left:1630 top:970  w:270  h:~64  → bottom:1034 center-x:1765
+            S4 praas/images:      left:2360 top:600  w:270  h:~130 → bottom:730  center-x:2495
+            S5 praas/optim:       left:3090 top:600  w:270  h:~64  → bottom:664  center-x:3225
+            S5 video/generate:    left:3090 top:790  w:270  h:~51  → bottom:841  center-x:3225
+            S5 video/status:      left:3090 top:930  w:270  h:~64  → bottom:994  center-x:3225
+            S6 creations:         left:3820 top:600  w:270  h:~64  → bottom:664  center-x:3955
+            S6 conversations:     left:3820 top:780  w:270  h:~51  → bottom:831  center-x:3955
+            S6 dam/edge:          left:3820 top:920  w:270  h:~64  → bottom:984  center-x:3955
+
+            INFRASTRUCTURE (top edge):
+            ─────────────────────────────────────
+            PostgreSQL:     left:1700 top:1200 w:400  center-x:1900
+            PraaS API:      left:2500 top:1480 w:380  center-x:2690
+            GCS:            left:800  top:1500 w:350  center-x:975
+            GCP IAP:        left:150  top:1200 w:300  center-x:300
+            Brand Store:    left:150  top:1740 w:280  center-x:290
+            Products API:   left:600  top:1820 w:280  center-x:740
+            Toolkits API:   left:1050 top:1820 w:280  center-x:1190
+            Guidelines:     left:1500 top:1820 w:280  center-x:1640
+            Sitecore DAM:   left:3600 top:1500 w:300  center-x:3750
+        -->
+
+        <!-- ============ HORIZONTAL USER FLOW (blue, prominent) ============ -->
+        <!-- START marker → S1 left-edge -->
+        <line x1="165" y1="134" x2="170" y2="134" stroke="#10B981" stroke-width="3" marker-end="url(#ar)"/>
+        <!-- S1 right-edge → S2 left-edge -->
+        <line x1="440" y1="138" x2="900" y2="118" stroke="#2563EB" stroke-width="3" marker-end="url(#ar)"/>
+        <!-- S2 right-edge → S3 left-edge -->
+        <line x1="1170" y1="118" x2="1630" y2="115" stroke="#2563EB" stroke-width="3" marker-end="url(#ar)"/>
+        <!-- S3 right-edge → S4 left-edge -->
+        <line x1="1900" y1="115" x2="2360" y2="118" stroke="#2563EB" stroke-width="3" marker-end="url(#ar)"/>
+        <!-- S4 right-edge → S5 left-edge -->
+        <line x1="2630" y1="118" x2="3090" y2="118" stroke="#2563EB" stroke-width="3" marker-end="url(#ar)"/>
+        <!-- S5 right-edge → S6 left-edge -->
+        <line x1="3360" y1="118" x2="3820" y2="118" stroke="#2563EB" stroke-width="3" marker-end="url(#ar)"/>
+        <!-- S6 right-edge → FINISH marker -->
+        <line x1="4090" y1="118" x2="4120" y2="134" stroke="#2563EB" stroke-width="3" marker-end="url(#ar)"/>
+
+        <!-- ============ VERTICAL: UI bottom → API top (gray, one per stage) ============ -->
+        <!-- S1: Google SSO bottom(305,180) → Middleware top(305,620) -->
+        <line x1="305" y1="180" x2="305" y2="620" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#ad)"/>
+        <!-- S2: Dashboard bottom(1035,160) → brand-store top(1035,600) -->
+        <line x1="1035" y1="160" x2="1035" y2="600" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#ad)"/>
+        <!-- S2: Your Studio bottom(1035,344) → creations top(1035,810) -->
+        <line x1="1035" y1="344" x2="1035" y2="810" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#ad)"/>
+        <!-- S3: Sidebar bottom(1765,162) → products top(1765,590) -->
+        <line x1="1765" y1="162" x2="1765" y2="590" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#ad)"/>
+        <!-- S4: Chat+Image bottom(2495,160) → praas/images top(2495,600) -->
+        <line x1="2495" y1="160" x2="2495" y2="600" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#ad)"/>
+        <!-- S5: Refinement bottom(3225,160) → praas/optim top(3225,600) -->
+        <line x1="3225" y1="160" x2="3225" y2="600" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#ad)"/>
+        <!-- S5: Video Polling bottom(3225,370) → video/generate top(3225,790) -->
+        <line x1="3225" y1="370" x2="3225" y2="790" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#ad)"/>
+        <!-- S6: Library bottom(3955,160) → creations top(3955,600) -->
+        <line x1="3955" y1="160" x2="3955" y2="600" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#ad)"/>
+        <!-- S6: DAM Browser bottom(3955,360) → dam/edge top(3955,920) -->
+        <line x1="3955" y1="360" x2="3955" y2="920" stroke="#9CA3AF" stroke-width="1.5" marker-end="url(#ad)"/>
+
+        <!-- ============ DIAGONAL: API bottom → Shared Services top (purple) ============ -->
+        <!-- S1 Middleware bottom(305,716) → PostgreSQL top-left(1700,1200) -->
+        <line x1="305" y1="716" x2="1700" y2="1200" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+        <!-- S2 creations bottom(1035,892) → PostgreSQL top(1750,1200) -->
+        <line x1="1035" y1="892" x2="1750" y2="1200" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+        <!-- S3 creative-dir bottom(1765,771) → PostgreSQL top(1850,1200) -->
+        <line x1="1765" y1="771" x2="1850" y2="1200" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+        <!-- S4 praas/images bottom(2495,730) → PostgreSQL top(1950,1200) -->
+        <line x1="2495" y1="730" x2="1950" y2="1200" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+        <!-- S5 video/status bottom(3225,994) → PostgreSQL top-right(2050,1200) -->
+        <line x1="3225" y1="994" x2="2050" y2="1200" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+        <!-- S6 creations bottom(3955,664) → PostgreSQL top-right(2100,1200) -->
+        <line x1="3955" y1="664" x2="2100" y2="1200" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+
+        <!-- S4 praas/images bottom(2495,730) → PraaS top-left(2500,1480) -->
+        <line x1="2495" y1="730" x2="2580" y2="1480" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+        <!-- S5 praas/optim bottom(3225,664) → PraaS top(2690,1480) -->
+        <line x1="3225" y1="664" x2="2690" y2="1480" stroke="#7C3AED" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+        <!-- S5 video/status bottom(3225,994) → PraaS top-right(2800,1480) -->
+        <line x1="3225" y1="994" x2="2800" y2="1480" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+
+        <!-- S4 praas/images bottom(2495,730) → GCS top(975,1500) -->
+        <line x1="2495" y1="730" x2="975" y2="1500" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+        <!-- S5 video/status bottom(3225,994) → GCS top-right(1100,1500) -->
+        <line x1="3225" y1="994" x2="1100" y2="1500" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ap)"/>
+
+        <!-- ============ Single-call services: API bottom → Service top (gray) ============ -->
+        <!-- S1 Middleware bottom(300,716) → GCP IAP top(300,1200) -->
+        <line x1="300" y1="716" x2="300" y2="1200" stroke="#9CA3AF" stroke-width="1" marker-end="url(#ad)"/>
+        <!-- S2 brand-store bottom(1035,682) → Brand Store top(290,1740) -->
+        <line x1="1035" y1="682" x2="290" y2="1740" stroke="#9CA3AF" stroke-width="1" marker-end="url(#ad)"/>
+        <!-- S3 products bottom(1765,654) → Products API top(740,1820) -->
+        <line x1="1765" y1="654" x2="740" y2="1820" stroke="#9CA3AF" stroke-width="1" marker-end="url(#ad)"/>
+        <!-- S3 toolkits bottom(1765,904) → Toolkits API top(1190,1820) -->
+        <line x1="1765" y1="904" x2="1190" y2="1820" stroke="#9CA3AF" stroke-width="1" marker-end="url(#ad)"/>
+        <!-- S3 guidelines bottom(1765,1034) → Guidelines Studio top(1640,1820) -->
+        <line x1="1765" y1="1034" x2="1640" y2="1820" stroke="#9CA3AF" stroke-width="1" marker-end="url(#ad)"/>
+        <!-- S6 dam/edge bottom(3955,984) → Sitecore DAM top(3750,1500) -->
+        <line x1="3955" y1="984" x2="3750" y2="1500" stroke="#9CA3AF" stroke-width="1" marker-end="url(#ad)"/>
+
+    </svg>
+
+</div><!-- end .board -->
+</div><!-- end .canvas -->
+</div><!-- end .viewport -->
+
+<!-- PAIN POINTS PANEL -->
+<div class="pain-panel" id="pp">
+    <h2>★ All 15 Pain Points — Ranked</h2>
+    <p class="sub">Severity, screen location, and data flow impact. Click ★ button to close.</p>
+    <table>
+        <thead><tr><th>#</th><th>Pain Point</th><th>Stage</th><th>Severity</th><th>Data Flow Impact</th></tr></thead>
+        <tbody>
+            <tr class="crit"><td><span class="rk">1</span></td><td><strong>PraaS SPOF</strong></td><td>4</td><td><span class="sev s1">CRITICAL</span></td><td>BFFE→PraaS: single pipe, no fallback</td></tr>
+            <tr class="crit"><td><span class="rk">2</span></td><td><strong>No brand enforcement</strong></td><td>3→4</td><td><span class="sev s1">CRITICAL</span></td><td>Guidelines fetched but NOT sent to PraaS</td></tr>
+            <tr class="crit"><td><span class="rk">3</span></td><td><strong>No production pipeline</strong></td><td>6</td><td><span class="sev s1">CRITICAL</span></td><td>No data path to DAM/channels/approvals</td></tr>
+            <tr><td><span class="rk">4</span></td><td><strong>No templates</strong></td><td>3</td><td><span class="sev s2">HIGH</span></td><td>No template table in schema</td></tr>
+            <tr><td><span class="rk">5</span></td><td><strong>Video 30-min expiry</strong></td><td>4</td><td><span class="sev s2">HIGH</span></td><td>GCS signed URL TTL; no refresh mechanism</td></tr>
+            <tr><td><span class="rk">6</span></td><td><strong>No DAM push</strong></td><td>6</td><td><span class="sev s2">HIGH</span></td><td>DamBrowser read-only; no POST endpoint</td></tr>
+            <tr><td><span class="rk">7</span></td><td><strong>Zero observability</strong></td><td>All</td><td><span class="sev s2">HIGH</span></td><td>No metrics/traces on any flow</td></tr>
+            <tr><td><span class="rk">8</span></td><td><strong>Infinite loading</strong></td><td>4</td><td><span class="sev s3">MEDIUM</span></td><td>No AbortController on PraaS fetch</td></tr>
+            <tr><td><span class="rk">9</span></td><td><strong>No approvals</strong></td><td>6</td><td><span class="sev s3">MEDIUM</span></td><td>No roles/permissions table</td></tr>
+            <tr><td><span class="rk">10</span></td><td><strong>Unbounded context</strong></td><td>5</td><td><span class="sev s3">MEDIUM</span></td><td>Full array grows → token overflow</td></tr>
+            <tr><td><span class="rk">11</span></td><td><strong>Brand Store timeout</strong></td><td>2-3</td><td><span class="sev s3">MEDIUM</span></td><td>No cache; sync on page load</td></tr>
+            <tr><td><span class="rk">12</span></td><td><strong>Video no refinement</strong></td><td>5</td><td><span class="sev s4">LOW-MED</span></td><td>No chat_history for video module</td></tr>
+            <tr><td><span class="rk">13</span></td><td><strong>No client cache</strong></td><td>All</td><td><span class="sev s4">LOW-MED</span></td><td>Every nav = fresh API call</td></tr>
+            <tr><td><span class="rk">14</span></td><td><strong>DB fail = content lost</strong></td><td>4</td><td><span class="sev s4">LOW-MED</span></td><td>PraaS returns but save throws → lost</td></tr>
+            <tr><td><span class="rk">15</span></td><td><strong>Slow history loads</strong></td><td>6</td><td><span class="sev s5">LOW</span></td><td>No cursor pagination</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    function togglePain(){document.getElementById('pp').classList.toggle('open');}
+    const vp=document.getElementById('vp'), cv=document.getElementById('cv');
+    let s=0.35, tx=0, ty=0, dr=false, sx,sy;
+    function upd(){cv.style.transform=`translate(${tx}px,${ty}px) scale(${s})`;document.getElementById('zl').textContent=Math.round(s*100)+'%';}
+    function zFit(){const w=vp.clientWidth,h=vp.clientHeight;s=Math.min(w/4600,h/2200)*0.92;tx=(w-4600*s)/2;ty=(h-2200*s)/2;upd();}
+    function zIn(){s=Math.min(s*1.2,3);upd();}
+    function zOut(){s=Math.max(s/1.2,0.1);upd();}
+    vp.addEventListener('wheel',e=>{e.preventDefault();const r=vp.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,ps=s;s=e.deltaY<0?Math.min(s*1.1,3):Math.max(s/1.1,0.1);tx=mx-(mx-tx)*(s/ps);ty=my-(my-ty)*(s/ps);upd();},{passive:false});
+    vp.addEventListener('mousedown',e=>{dr=true;sx=e.clientX-tx;sy=e.clientY-ty;});
+    vp.addEventListener('mousemove',e=>{if(!dr)return;tx=e.clientX-sx;ty=e.clientY-sy;upd();});
+    vp.addEventListener('mouseup',()=>{dr=false;});
+    vp.addEventListener('mouseleave',()=>{dr=false;});
+    let ltd=0,ltx=0,lty=0;
+    vp.addEventListener('touchstart',e=>{if(e.touches.length===1){dr=true;ltx=e.touches[0].clientX;lty=e.touches[0].clientY;}else if(e.touches.length===2){dr=false;ltd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}},{passive:false});
+    vp.addEventListener('touchmove',e=>{e.preventDefault();if(e.touches.length===1&&dr){tx+=e.touches[0].clientX-ltx;ty+=e.touches[0].clientY-lty;ltx=e.touches[0].clientX;lty=e.touches[0].clientY;upd();}else if(e.touches.length===2){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);s=Math.max(0.1,Math.min(3,s*(d/ltd)));ltd=d;upd();}},{passive:false});
+    vp.addEventListener('touchend',()=>{dr=false;});
+    window.addEventListener('load',zFit);
+    window.addEventListener('resize',zFit);
+</script>
+</body>
+</html>
