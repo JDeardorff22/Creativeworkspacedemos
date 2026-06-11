@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eContent Workshop Part 2 — User Requirements Analysis</title>
+    <style>
+        :root {
+            --critical: #dc2626;
+            --critical-bg: #fef2f2;
+            --critical-border: #fecaca;
+            --important: #d97706;
+            --important-bg: #fffbeb;
+            --important-border: #fde68a;
+            --nice: #16a34a;
+            --nice-bg: #f0fdf4;
+            --nice-border: #bbf7d0;
+            --pg-blue: #003DA5;
+            --pg-dark: #1a1a2e;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: var(--gray-800);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--pg-blue) 0%, #1e3a5f 100%);
+            color: white;
+            padding: 3rem 2.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .meta-item svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .header-context {
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 0.95rem;
+            opacity: 0.85;
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            text-align: center;
+            border-top: 3px solid var(--pg-blue);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-card.critical { border-top-color: var(--critical); }
+        .stat-card.important { border-top-color: var(--important); }
+        .stat-card.nice { border-top-color: var(--nice); }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--pg-blue);
+        }
+
+        .stat-card.critical .stat-number { color: var(--critical); }
+        .stat-card.important .stat-number { color: var(--important); }
+        .stat-card.nice .stat-number { color: var(--nice); }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+
+        /* Section Headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 2.5rem 0 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .section-header.critical { border-bottom-color: var(--critical); }
+        .section-header.important { border-bottom-color: var(--important); }
+        .section-header.nice { border-bottom-color: var(--nice); }
+
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .section-badge.critical {
+            background: var(--critical-bg);
+            color: var(--critical);
+            border: 1px solid var(--critical-border);
+        }
+
+        .section-badge.important {
+            background: var(--important-bg);
+            color: var(--important);
+            border: 1px solid var(--important-border);
+        }
+
+        .section-badge.nice {
+            background: var(--nice-bg);
+            color: var(--nice);
+            border: 1px solid var(--nice-border);
+        }
+
+        .section-header h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        /* Requirement Cards */
+        .req-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--gray-300);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .req-card:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .req-card.critical { border-left-color: var(--critical); }
+        .req-card.important { border-left-color: var(--important); }
+        .req-card.nice { border-left-color: var(--nice); }
+
+        .req-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .req-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .req-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .req-number.critical { background: var(--critical-bg); color: var(--critical); }
+        .req-number.important { background: var(--important-bg); color: var(--important); }
+        .req-number.nice { background: var(--nice-bg); color: var(--nice); }
+
+        .req-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .consensus-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            white-space: nowrap;
+        }
+
+        .consensus-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .req-description {
+            color: var(--gray-700);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 1.25rem;
+        }
+
+        .req-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .meta-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .meta-tag svg {
+            width: 13px;
+            height: 13px;
+            opacity: 0.7;
+        }
+
+        .quote {
+            margin-top: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--gray-50);
+            border-left: 3px solid var(--gray-300);
+            border-radius: 0 6px 6px 0;
+            font-style: italic;
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        /* KPI Table */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin: 2rem 0;
+        }
+
+        .table-container h2 {
+            padding: 1.25rem 1.5rem;
+            font-size: 1.2rem;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background: var(--pg-dark);
+            color: white;
+        }
+
+        thead th {
+            padding: 0.85rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--gray-100);
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: var(--gray-50);
+        }
+
+        tbody td {
+            padding: 0.85rem 1rem;
+            vertical-align: middle;
+        }
+
+        .priority-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .priority-pill.critical { background: var(--critical-bg); color: var(--critical); }
+        .priority-pill.important { background: var(--important-bg); color: var(--important); }
+        .priority-pill.nice { background: var(--nice-bg); color: var(--nice); }
+
+        .voices-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .voices-fill {
+            height: 8px;
+            border-radius: 4px;
+            background: var(--pg-blue);
+            min-width: 20px;
+        }
+
+        .epic-tag {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: #eef2ff;
+            color: #4338ca;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Key Observations */
+        .observations {
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            border: 1px solid #c7d2fe;
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-top: 2.5rem;
+        }
+
+        .observations h2 {
+            font-size: 1.2rem;
+            color: #3730a3;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .observations p {
+            color: #4338ca;
+            line-height: 1.7;
+        }
+
+        .observations strong {
+            color: #1e1b4b;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            color: var(--gray-600);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .header { padding: 2rem 1.5rem; }
+            .header h1 { font-size: 1.6rem; }
+            .header-meta { flex-direction: column; gap: 0.5rem; }
+            .stats-bar { grid-template-columns: repeat(2, 1fr); }
+            .req-card-header { flex-direction: column; }
+            .table-container { overflow-x: auto; }
+        }
+
+        @media print {
+            body { background: white; }
+            .req-card:hover, .stat-card:hover { transform: none; box-shadow: var(--shadow); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>eContent Workshop Part 2 — User Requirements Analysis</h1>
+            <div class="header-meta">
+                <div class="meta-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span>Meeting Date: June 10, 2026</span>
+                </div>
+                <div class="meta-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Duration: 3h 19m 52s</span>
+                </div>
+                <div class="meta-item">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>Analysis Date: June 11, 2026</span>
+                </div>
+            </div>
+            <p class="header-context">Large meeting where end users were shown how to use the ICS Create Studio product. User pain points, requirements, and feature requests were captured organically during discussion.</p>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-card">
+                <div class="stat-number">14</div>
+                <div class="stat-label">Total Requirements</div>
+            </div>
+            <div class="stat-card critical">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Critical Pain Points</div>
+            </div>
+            <div class="stat-card important">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Important Improvements</div>
+            </div>
+            <div class="stat-card nice">
+                <div class="stat-number">4</div>
+                <div class="stat-label">Nice-to-Have</div>
+            </div>
+        </div>
+
+        <!-- CRITICAL SECTION -->
+        <div class="section-header critical">
+            <span class="section-badge critical">🔴 Critical</span>
+            <h2>Immediate Pain Point Solves</h2>
+        </div>
+
+        <!-- Req 1 -->
+        <div class="req-card critical">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number critical">1</span>
+                    <h3>Content Discrepancy Between PIM and Live Retailer Site</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    3–4 voices
+                </span>
+            </div>
+            <p class="req-description">Users have no efficient way to compare content that's been submitted/approved in PIM against what's actually live on retailer PDPs. When leadership asks "why is this wrong?" the brand teams respond "it's right in PIM" — but the content on the live retailer site is outdated or incorrect. There is no clear ownership of who closes the gap (brand side vs. customer team side), and no system to surface the root cause of discrepancies.</p>
+            <div class="quote">"I get the same pings... we're like, it's right in PIM, like why is it wrong?"</div>
+            <div class="req-meta" style="margin-top: 1rem;">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Brand team member (Matt / Old Spice)
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Content Integrity
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 2 -->
+        <div class="req-card critical">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number critical">2</span>
+                    <h3>Artwork & CIC Process Visibility and Ownership Clarity</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    4–5 voices
+                </span>
+            </div>
+            <p class="req-description">The artwork creation and CIC (Creative in Context) process is excessively long, frequently late, and it's unclear who owns each step across RBU, BFO, and brand teams. Users expressed fear about the timeline and said they don't know where SKUs are in the pipeline. Last year, a tracking list showed where each SKU was in the artwork process — users want this again.</p>
+            <div class="quote">"I'm already scared of looking at that path"</div>
+            <div class="req-meta" style="margin-top: 1rem;">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Old Spice, Olay teams + Riley Ellingson
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Pipeline Tracking
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 3 -->
+        <div class="req-card critical">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number critical">3</span>
+                    <h3>Content Variation Turnaround Time with CMG</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    2 voices
+                </span>
+            </div>
+            <p class="req-description">After creating a hero SKU's content, getting CMG to produce the 12+ variations takes over a month of back-and-forth. This blocks the entire collection from being content-complete. Users need a faster, more predictable variation workflow.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Old Spice / Secret representative
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Workflow Automation
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 4 -->
+        <div class="req-card critical">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number critical">4</span>
+                    <h3>MOI Rejection Inconsistency Across Retailers</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    3 voices
+                </span>
+            </div>
+            <p class="req-description">Main Operating Images (MOIs) with visual cues/banners are accepted or rejected inconsistently across Amazon, Walmart, and Target — and even inconsistently at the SKU level within a single retailer. Users are forced to create two versions of every MOI (one with visual cues, one without) as a fallback. There's an active issue sheet with Amazon on this topic.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Ben (presenter) + team members
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Asset Management
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 5 -->
+        <div class="req-card critical">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number critical">5</span>
+                    <h3>GEO/LLM Playbook Timing for JFM 27 Pipeline</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    2 voices
+                </span>
+            </div>
+            <p class="req-description">Hundreds of SKUs are entering the pipeline for August/September e-content readiness. Brand teams need the GEO optimization playbook rolled out NOW so they can incorporate it into copy being written today — not after it's already been submitted. Marketing copy takes significant time due to many codes and considerations.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Riley Ellingson
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Content Strategy
+                </span>
+            </div>
+        </div>
+
+        <!-- IMPORTANT SECTION -->
+        <div class="section-header important">
+            <span class="section-badge important">🟡 Important</span>
+            <h2>Important Improvements</h2>
+        </div>
+
+        <!-- Req 6 -->
+        <div class="req-card important">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number important">6</span>
+                    <h3>Retailer Content Dashboard Access & Metrics Customization</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    3–4 voices
+                </span>
+            </div>
+            <p class="req-description">Corporate data analytics has built prototype dashboards for Amazon, Walmart, and Target that scrape live PDP content, score it against retailer-specific criteria, and show performance metrics (click share, conversion share, relevancy). Users want access to test these, and want to influence which metrics are displayed (e.g., glance views, conversion rate). Currently refreshes are ad hoc — users want regular refresh cycles.</p>
+            <div class="quote">"a game changer" — "our band 5's asked for that a lot"</div>
+            <div class="req-meta" style="margin-top: 1rem;">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Ben (presenter) + multiple attendees
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Analytics & Reporting
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 7 -->
+        <div class="req-card important">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number important">7</span>
+                    <h3>Cross-Retailer Content Consistency View</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    2 voices
+                </span>
+            </div>
+            <p class="req-description">Users want a single unified view showing how one SKU's content appears across Amazon, Walmart, and Target simultaneously — to quickly identify where content is inconsistent across retailers without checking 3 separate dashboards.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Ben (presenter)
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Analytics & Reporting
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 8 -->
+        <div class="req-card important">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number important">8</span>
+                    <h3>Content Score Change Tracking with Causal Attribution</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    2 voices
+                </span>
+            </div>
+            <p class="req-description">When content scores change over time on the retailer dashboards, users want to see what specific content change caused the score change — and whether the change was positive or negative. The prototype has this partially built with "major/minor change" tracking.</p>
+            <div class="quote">"pressure test different MOI formats based on how well it performs"</div>
+            <div class="req-meta" style="margin-top: 1rem;">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Ben + Old Spice team
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Analytics & Reporting
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 9 -->
+        <div class="req-card important">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number important">9</span>
+                    <h3>Backend Search Term Audit for LLM Hallucination Prevention</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    1–2 voices
+                </span>
+            </div>
+            <p class="req-description">Old claims in backend search terms (not visible to consumers) are causing AI assistants like Alexa to hallucinate incorrect product information. Users need a standardized checklist/audit process to ensure backend search terms are current and aligned with on-site content.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Sean (GEO presenter)
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Content Strategy
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 10 -->
+        <div class="req-card important">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number important">10</span>
+                    <h3>Education for Leadership on Retailer Realities</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    2–3 voices
+                </span>
+            </div>
+            <p class="req-description">Leadership makes asks (e.g., "update all MOIs to Wild" or "why doesn't top 100 look perfect?") without understanding retailer-specific limitations, rejection rates, and inconsistencies. Users want structured education pushed UP to leadership so expectations are realistic.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Old Spice representative
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Enablement
+                </span>
+            </div>
+        </div>
+
+        <!-- NICE-TO-HAVE SECTION -->
+        <div class="section-header nice">
+            <span class="section-badge nice">🟢 Nice-to-Have</span>
+            <h2>Future Enhancements</h2>
+        </div>
+
+        <!-- Req 11 -->
+        <div class="req-card nice">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number nice">11</span>
+                    <h3>AI-Powered Content Validation (ChatGPT Assistant with Playbook)</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    1–2 voices
+                </span>
+            </div>
+            <p class="req-description">A user suggested building a ChatGPT-based assistant that has the GEO playbook loaded, where brand teams can plug in their copy and get instant validation against best practices — reducing dependency on Sean for manual reviews.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Unidentified team member
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: AI/Automation
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 12 -->
+        <div class="req-card nice">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number nice">12</span>
+                    <h3>Text-Based A+ Content Templates for LLM Readability</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    2 voices
+                </span>
+            </div>
+            <p class="req-description">Historically, A+ (enhanced) content has been image-heavy and therefore invisible to LLMs that scrape PDPs. Users need text-based A+ content templates with comparison tables, FAQ sections, and claims that are readable by Alexa/ChatGPT.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Sean (GEO presenter)
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Content Strategy
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 13 -->
+        <div class="req-card nice">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number nice">13</span>
+                    <h3>Brand Story Module as Quick Win for LLM Visibility</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    1 voice
+                </span>
+            </div>
+            <p class="req-description">The brand story module at the bottom of PDPs can be applied brand-wide (one-time setup) with text-based content that LLMs can scrape. This is an easy win that doesn't require per-SKU customization.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Sean (GEO presenter)
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Content Strategy
+                </span>
+            </div>
+        </div>
+
+        <!-- Req 14 -->
+        <div class="req-card nice">
+            <div class="req-card-header">
+                <div class="req-card-title">
+                    <span class="req-number nice">14</span>
+                    <h3>Epoch/A-B Testing Built into Content Workflow</h3>
+                </div>
+                <span class="consensus-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    1 voice
+                </span>
+            </div>
+            <p class="req-description">The timeline references "executing epoch testing" on initial content before variating across SKUs — but there's no formal process or tool integration for this. Users would benefit from structured A/B testing between base content creation and full variation.</p>
+            <div class="req-meta">
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    Raised by: Ben (presenter)
+                </span>
+                <span class="meta-tag">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                    Epic: Workflow Automation
+                </span>
+            </div>
+        </div>
+
+        <!-- KPI TABLE -->
+        <div class="table-container">
+            <h2>📊 Summary KPI Table</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Requirement</th>
+                        <th>Priority</th>
+                        <th>Voices</th>
+                        <th>Jira Epic</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>PIM vs. Live Site Discrepancy Tracking</td>
+                        <td><span class="priority-pill critical">🔴 Critical</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 70%; background: var(--critical);"></div>
+                                <span>3–4</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Content Integrity</span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Artwork/CIC Process Visibility</td>
+                        <td><span class="priority-pill critical">🔴 Critical</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 90%; background: var(--critical);"></div>
+                                <span>4–5</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Pipeline Tracking</span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>CMG Variation Turnaround</td>
+                        <td><span class="priority-pill critical">🔴 Critical</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 40%; background: var(--critical);"></div>
+                                <span>2</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Workflow Automation</span></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>MOI Rejection Inconsistency</td>
+                        <td><span class="priority-pill critical">🔴 Critical</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 60%; background: var(--critical);"></div>
+                                <span>3</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Asset Management</span></td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>GEO Playbook Timing</td>
+                        <td><span class="priority-pill critical">🔴 Critical</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 40%; background: var(--critical);"></div>
+                                <span>2</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Content Strategy</span></td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>Retailer Dashboard Access</td>
+                        <td><span class="priority-pill important">🟡 Important</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 70%; background: var(--important);"></div>
+                                <span>3–4</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Analytics & Reporting</span></td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>Cross-Retailer SKU View</td>
+                        <td><span class="priority-pill important">🟡 Important</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 40%; background: var(--important);"></div>
+                                <span>2</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Analytics & Reporting</span></td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>Content Score Attribution</td>
+                        <td><span class="priority-pill important">🟡 Important</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 40%; background: var(--important);"></div>
+                                <span>2</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Analytics & Reporting</span></td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>Backend Search Term Audit</td>
+                        <td><span class="priority-pill important">🟡 Important</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 30%; background: var(--important);"></div>
+                                <span>1–2</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Content Strategy</span></td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>Leadership Education on Retailer Realities</td>
+                        <td><span class="priority-pill important">🟡 Important</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 50%; background: var(--important);"></div>
+                                <span>2–3</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Enablement</span></td>
+                    </tr>
+                    <tr>
+                        <td>11</td>
+                        <td>AI Copy Validation Assistant</td>
+                        <td><span class="priority-pill nice">🟢 Nice-to-Have</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 30%; background: var(--nice);"></div>
+                                <span>1–2</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">AI/Automation</span></td>
+                    </tr>
+                    <tr>
+                        <td>12</td>
+                        <td>Text-Based A+ Templates</td>
+                        <td><span class="priority-pill nice">🟢 Nice-to-Have</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 40%; background: var(--nice);"></div>
+                                <span>2</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Content Strategy</span></td>
+                    </tr>
+                    <tr>
+                        <td>13</td>
+                        <td>Brand Story Module Quick Win</td>
+                        <td><span class="priority-pill nice">🟢 Nice-to-Have</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 20%; background: var(--nice);"></div>
+                                <span>1</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Content Strategy</span></td>
+                    </tr>
+                    <tr>
+                        <td>14</td>
+                        <td>Epoch Testing Integration</td>
+                        <td><span class="priority-pill nice">🟢 Nice-to-Have</span></td>
+                        <td>
+                            <div class="voices-bar">
+                                <div class="voices-fill" style="width: 20%; background: var(--nice);"></div>
+                                <span>1</span>
+                            </div>
+                        </td>
+                        <td><span class="epic-tag">Workflow Automation</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Key Observations -->
+        <div class="observations">
+            <h2>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                Key Observations for Create Studio Relevance
+            </h2>
+            <p>Items <strong>#3 (CMG variation turnaround)</strong>, <strong>#11 (AI copy validation)</strong>, and <strong>#12 (text-based A+ templates)</strong> are directly addressable by ICS Create Studio capabilities. The meeting ended with attendees transitioning into a hands-on Create Studio session — suggesting the tool is already positioned to solve some of these, but <strong>adoption/awareness is the gap</strong>.</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>ICS Create Studio — eContent Workshop Requirements Analysis • Generated June 11, 2026</p>
+        </div>
+    </div>
+</body>
+</html>
